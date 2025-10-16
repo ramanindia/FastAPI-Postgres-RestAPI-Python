@@ -1,4 +1,4 @@
-# FastAPI-Postgres-API
+# FastAPI-Postgres-API-Python
 A comprehensive backend boilerplate built with FastAPI and PostgreSQL, following best practices for scalable REST API development in Python. This template is ideal for building modern, production-ready APIs with authentication, async database operations, and clean architecture.
 
 ## Environment Setup
