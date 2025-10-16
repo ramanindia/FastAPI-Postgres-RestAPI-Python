@@ -1,0 +1,130 @@
+full steps on how to set a volt-var curve
+
+Initialize device, and run device discovery with scan():
+
+>>> d = client.SunSpecModbusClientDeviceRTU(slave_id=1, name="COM2")
+>>> d.scan()
+
+
+>>> d.models
+{1: [<__main__.SunSpecModbusClientModel object at 0x000001FD7A6082B0>],
+ 'common': [<__main__.SunSpecModbusClientModel object at 0x000001FD7A6082B0>],
+ 705: [<__main__.SunSpecModbusClientModel object at 0x000001FD7A8B28B0>],
+ 'DERVoltVar': [<__main__.SunSpecModbusClientModel object at 0x000001FD7A8B28B0>]}
+
+ >>> vv = d.DERVoltVar[0]
+>>> vv.read()
+
+
+>>> print(vv.Crv[0])
+Crv(1):
+  ActPt:  4
+  DeptRef:  1
+  Pri:  1
+  VRef:  100
+  VRefAuto:  0
+  VRefAutoEna:  None
+  VRefTms:  5
+  RspTms:  0
+  ReadOnly:  1
+  Pt(1):
+    V:  9200
+    Var:  3000
+  Pt(2):
+    V:  9670
+    Var:  0
+  Pt(3):
+    V:  10300
+    Var:  0
+  Pt(4):
+    V:  10700
+    Var:  -3000
+
+Use the second curve to hold the new curve settings and write to the device:
+
+    >>> c = vv.Crv[1]
+>>> c.ActPt = 4
+>>> c.DeptRef = 1
+>>> c.VRef = 100
+>>> c.VRefAutoEna = 0
+>>> c.Pt[0].V = 9300
+>>> c.Pt[0].Var = 2000
+>>> c.Pt[1].V = 9700
+>>> c.Pt[1].Var = 0
+>>> c.Pt[2].V = 10350
+>>> c.Pt[2].Var = 0
+>>> c.Pt[3].V = 10680
+>>> c.Pt[3].Var = -2000
+>>> c.write()
+
+Write point adopt curve request point to adopt the curve 2 values:
+>>> vv.AdptCrvReq = 2
+>>> vv.write()
+
+
+Read the adopt curve result and contents of the curves:
+>>> vv.read()
+>>> print(vv.AdptCrvRslt)
+
+
+>>> print(vv.Crv[0])
+Crv(1):
+  ActPt:  4
+  DeptRef:  1
+  Pri:  1
+  VRef:  100
+  VRefAuto:  0
+  VRefAutoEna:  None
+  VRefTms:  5
+  RspTms:  0
+  ReadOnly:  1
+  Pt(1):
+    V:  9300
+    Var:  2000
+  Pt(2):
+    V:  9700
+    Var:  0
+  Pt(3):
+    V:  10350
+    Var:  0
+  Pt(4):
+    V:  10680
+    Var:  -2000
+
+
+
+
+
+
+    Devices expose models, each with groups and points.
+    Each point has value, sf_value (scale factor), and cvalue (computed value with scale applied).
+    ###############################################
+
+    d = client.SunSpecModbusClientDeviceTCP(
+    slave_id=1,
+    ipaddr="192.168.1.50",
+    ipport=502,
+    timeout=2.0
+)
+
+try:
+    d.scan()                                # models discover
+    m702 = d.DERCapacity[0]
+    m702.read()
+
+    # Scale factor automatic: cvalue watts me hota hai
+    m702.points["WMax"].cvalue = 4800       # e.g. 4.8 kW
+    m702.write()                             # write to device
+    
+    m702.read()
+    print("New WMax (W):", m702.points["WMax"].cvalue)
+finally:
+    d.close()
+
+
+    for curtail
+    m704 = d.DERCtlAC[0]
+    m704.read()
+    m704.points["WMaxLimPctEna"].value = 1
+    m704.points["WMaxLimPct"].cvalue = 80       # 80% of WMax
+    m704.write()
